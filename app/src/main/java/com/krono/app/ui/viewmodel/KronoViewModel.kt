@@ -1,6 +1,7 @@
 package com.krono.app.ui.viewmodel
 
 import android.app.Application
+import android.graphics.Bitmap
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.krono.app.hub.KronoRuntimeHub
@@ -125,6 +126,18 @@ class KronoViewModel(application: Application) : AndroidViewModel(application) {
                 entity?.assetId
             }
         } catch (e: Exception) {
+            null
+        }
+    }
+
+    suspend fun importCroppedWallpaper(bitmap: Bitmap): String? = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        try {
+            val byteOutputStream = java.io.ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteOutputStream)
+            val inputStream = java.io.ByteArrayInputStream(byteOutputStream.toByteArray())
+            val entity = assetRepository.importAsset(inputStream, "image/png")
+            entity?.assetId
+        } catch (_: Exception) {
             null
         }
     }

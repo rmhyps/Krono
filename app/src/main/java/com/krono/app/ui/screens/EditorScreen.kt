@@ -74,6 +74,7 @@ import com.krono.app.ui.components.BluetoothDevicePickerDialog
 import com.krono.app.ui.components.LogicBlock
 import com.krono.app.ui.components.MapPickerDialog
 import com.krono.app.ui.components.TriggerPickerDialog
+import com.krono.app.ui.components.WallpaperCropDialog
 import com.krono.app.ui.theme.KronoBackground
 import com.krono.app.ui.theme.KronoError
 import com.krono.app.ui.theme.KronoOnPrimary
@@ -1270,20 +1271,32 @@ fun ActionEditorRow(
 ) {
     val scope = rememberCoroutineScope()
     var isImporting by remember { mutableStateOf(false) }
+    var selectedImageUriForCrop by remember { mutableStateOf<Uri?>(null) }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
-            scope.launch {
-                isImporting = true
-                val newAssetId = viewModel.importWallpaperImage(uri)
-                if (newAssetId != null) {
-                    actionState.assetId = newAssetId
-                }
-                isImporting = false
-            }
+            selectedImageUriForCrop = uri
         }
+    }
+
+    selectedImageUriForCrop?.let { uri ->
+        WallpaperCropDialog(
+            imageUri = uri,
+            onDismiss = { selectedImageUriForCrop = null },
+            onCropConfirmed = { croppedBitmap ->
+                selectedImageUriForCrop = null
+                scope.launch {
+                    isImporting = true
+                    val newAssetId = viewModel.importCroppedWallpaper(croppedBitmap)
+                    if (newAssetId != null) {
+                        actionState.assetId = newAssetId
+                    }
+                    isImporting = false
+                }
+            }
+        )
     }
 
     Card(
