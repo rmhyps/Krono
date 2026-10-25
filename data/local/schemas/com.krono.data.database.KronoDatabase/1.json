@@ -1,0 +1,2157 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "9f5bc82d3d9ff32a9455e3038eb4e10c",
+    "entities": [
+      {
+        "tableName": "rules",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`rule_id` TEXT NOT NULL, `created_at_utc_ms` INTEGER NOT NULL, `deleted_at_utc_ms` INTEGER, PRIMARY KEY(`rule_id`))",
+        "fields": [
+          {
+            "fieldPath": "ruleId",
+            "columnName": "rule_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtUtcMs",
+            "columnName": "created_at_utc_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deletedAtUtcMs",
+            "columnName": "deleted_at_utc_ms",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "rule_id"
+          ]
+        }
+      },
+      {
+        "tableName": "rule_revisions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`rule_id` TEXT NOT NULL, `revision` INTEGER NOT NULL, `name` TEXT NOT NULL, `mode` TEXT NOT NULL, `trigger_family` TEXT NOT NULL, `trigger_kind` TEXT NOT NULL, `rule_format_version` INTEGER NOT NULL, `semantics_version` TEXT NOT NULL, `created_at_utc_ms` INTEGER NOT NULL, PRIMARY KEY(`rule_id`, `revision`))",
+        "fields": [
+          {
+            "fieldPath": "ruleId",
+            "columnName": "rule_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "revision",
+            "columnName": "revision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mode",
+            "columnName": "mode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "triggerFamily",
+            "columnName": "trigger_family",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "triggerKind",
+            "columnName": "trigger_kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ruleFormatVersion",
+            "columnName": "rule_format_version",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "semanticsVersion",
+            "columnName": "semantics_version",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtUtcMs",
+            "columnName": "created_at_utc_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "rule_id",
+            "revision"
+          ]
+        }
+      },
+      {
+        "tableName": "rule_state",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`rule_id` TEXT NOT NULL, `current_revision` INTEGER, `desired_active` INTEGER NOT NULL, `activation_generation` INTEGER NOT NULL, `row_version` INTEGER NOT NULL, `history_clear_through_seq` INTEGER NOT NULL, `updated_at_utc_ms` INTEGER NOT NULL, PRIMARY KEY(`rule_id`))",
+        "fields": [
+          {
+            "fieldPath": "ruleId",
+            "columnName": "rule_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentRevision",
+            "columnName": "current_revision",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "desiredActive",
+            "columnName": "desired_active",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "activationGeneration",
+            "columnName": "activation_generation",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rowVersion",
+            "columnName": "row_version",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "historyClearThroughSeq",
+            "columnName": "history_clear_through_seq",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtUtcMs",
+            "columnName": "updated_at_utc_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "rule_id"
+          ]
+        }
+      },
+      {
+        "tableName": "rule_priority",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`rule_id` TEXT NOT NULL, `position` INTEGER NOT NULL, PRIMARY KEY(`rule_id`))",
+        "fields": [
+          {
+            "fieldPath": "ruleId",
+            "columnName": "rule_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "rule_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_rule_priority_position",
+            "unique": true,
+            "columnNames": [
+              "position"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_rule_priority_position` ON `${TABLE_NAME}` (`position`)"
+          }
+        ]
+      },
+      {
+        "tableName": "branches",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`rule_id` TEXT NOT NULL, `revision` INTEGER NOT NULL, `branch_id` TEXT NOT NULL, `position` INTEGER NOT NULL, `branch_kind` TEXT NOT NULL, `predicate_kind` TEXT NOT NULL, `predicate_source_id` TEXT, `predicate_source_revision` INTEGER, PRIMARY KEY(`rule_id`, `revision`, `branch_id`))",
+        "fields": [
+          {
+            "fieldPath": "ruleId",
+            "columnName": "rule_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "revision",
+            "columnName": "revision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "branchId",
+            "columnName": "branch_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "branchKind",
+            "columnName": "branch_kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "predicateKind",
+            "columnName": "predicate_kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "predicateSourceId",
+            "columnName": "predicate_source_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "predicateSourceRevision",
+            "columnName": "predicate_source_revision",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "rule_id",
+            "revision",
+            "branch_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_branches_rule_id_revision_position",
+            "unique": true,
+            "columnNames": [
+              "rule_id",
+              "revision",
+              "position"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_branches_rule_id_revision_position` ON `${TABLE_NAME}` (`rule_id`, `revision`, `position`)"
+          }
+        ]
+      },
+      {
+        "tableName": "actions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`rule_id` TEXT NOT NULL, `revision` INTEGER NOT NULL, `action_id` TEXT NOT NULL, `branch_id` TEXT NOT NULL, `position` INTEGER NOT NULL, `action_kind` TEXT NOT NULL, `asset_id` TEXT, `wallpaper_target` TEXT, `volume_percent` INTEGER, PRIMARY KEY(`rule_id`, `revision`, `action_id`))",
+        "fields": [
+          {
+            "fieldPath": "ruleId",
+            "columnName": "rule_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "revision",
+            "columnName": "revision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "actionId",
+            "columnName": "action_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "branchId",
+            "columnName": "branch_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "actionKind",
+            "columnName": "action_kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "assetId",
+            "columnName": "asset_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "wallpaperTarget",
+            "columnName": "wallpaper_target",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "volumePercent",
+            "columnName": "volume_percent",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "rule_id",
+            "revision",
+            "action_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_actions_rule_id_revision_branch_id_position",
+            "unique": true,
+            "columnNames": [
+              "rule_id",
+              "revision",
+              "branch_id",
+              "position"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_actions_rule_id_revision_branch_id_position` ON `${TABLE_NAME}` (`rule_id`, `revision`, `branch_id`, `position`)"
+          }
+        ]
+      },
+      {
+        "tableName": "rule_sources",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`rule_id` TEXT NOT NULL, `revision` INTEGER NOT NULL, `source_id` TEXT NOT NULL, `source_revision` INTEGER NOT NULL, PRIMARY KEY(`rule_id`, `revision`, `source_id`, `source_revision`))",
+        "fields": [
+          {
+            "fieldPath": "ruleId",
+            "columnName": "rule_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "revision",
+            "columnName": "revision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceId",
+            "columnName": "source_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceRevision",
+            "columnName": "source_revision",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "rule_id",
+            "revision",
+            "source_id",
+            "source_revision"
+          ]
+        }
+      },
+      {
+        "tableName": "source_definitions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`source_id` TEXT NOT NULL, `source_revision` INTEGER NOT NULL, `source_kind` TEXT NOT NULL, `label` TEXT NOT NULL, `latitude` REAL, `longitude` REAL, `radius_m` REAL, `device_identity` TEXT, `transport_policy` TEXT, `created_at_utc_ms` INTEGER NOT NULL, PRIMARY KEY(`source_id`, `source_revision`))",
+        "fields": [
+          {
+            "fieldPath": "sourceId",
+            "columnName": "source_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceRevision",
+            "columnName": "source_revision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceKind",
+            "columnName": "source_kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "label",
+            "columnName": "label",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "latitude",
+            "columnName": "latitude",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "longitude",
+            "columnName": "longitude",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "radiusM",
+            "columnName": "radius_m",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "deviceIdentity",
+            "columnName": "device_identity",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "transportPolicy",
+            "columnName": "transport_policy",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "createdAtUtcMs",
+            "columnName": "created_at_utc_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "source_id",
+            "source_revision"
+          ]
+        }
+      },
+      {
+        "tableName": "rule_drafts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`draft_id` TEXT NOT NULL, `target_rule_id` TEXT, `base_revision` INTEGER, `draft_format_version` INTEGER NOT NULL, `draft_json` TEXT NOT NULL, `row_version` INTEGER NOT NULL, `updated_at_utc_ms` INTEGER NOT NULL, PRIMARY KEY(`draft_id`))",
+        "fields": [
+          {
+            "fieldPath": "draftId",
+            "columnName": "draft_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "targetRuleId",
+            "columnName": "target_rule_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "baseRevision",
+            "columnName": "base_revision",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "draftFormatVersion",
+            "columnName": "draft_format_version",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "draftJson",
+            "columnName": "draft_json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rowVersion",
+            "columnName": "row_version",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtUtcMs",
+            "columnName": "updated_at_utc_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "draft_id"
+          ]
+        }
+      },
+      {
+        "tableName": "draft_asset_refs",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`draft_id` TEXT NOT NULL, `asset_id` TEXT NOT NULL, PRIMARY KEY(`draft_id`, `asset_id`))",
+        "fields": [
+          {
+            "fieldPath": "draftId",
+            "columnName": "draft_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "assetId",
+            "columnName": "asset_id",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "draft_id",
+            "asset_id"
+          ]
+        }
+      },
+      {
+        "tableName": "assets",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`asset_id` TEXT NOT NULL, `state` TEXT NOT NULL, `relative_path` TEXT, `mime_type` TEXT, `byte_count` INTEGER, `width_px` INTEGER, `height_px` INTEGER, `sha256` TEXT, `error_code` TEXT, `row_version` INTEGER NOT NULL, `created_at_utc_ms` INTEGER NOT NULL, `updated_at_utc_ms` INTEGER NOT NULL, PRIMARY KEY(`asset_id`))",
+        "fields": [
+          {
+            "fieldPath": "assetId",
+            "columnName": "asset_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "relativePath",
+            "columnName": "relative_path",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "mimeType",
+            "columnName": "mime_type",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "byteCount",
+            "columnName": "byte_count",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "widthPx",
+            "columnName": "width_px",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "heightPx",
+            "columnName": "height_px",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "sha256",
+            "columnName": "sha256",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "errorCode",
+            "columnName": "error_code",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "rowVersion",
+            "columnName": "row_version",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtUtcMs",
+            "columnName": "created_at_utc_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtUtcMs",
+            "columnName": "updated_at_utc_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "asset_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_assets_relative_path",
+            "unique": true,
+            "columnNames": [
+              "relative_path"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_assets_relative_path` ON `${TABLE_NAME}` (`relative_path`)"
+          }
+        ]
+      },
+      {
+        "tableName": "asset_read_leases",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`lease_id` TEXT NOT NULL, `asset_id` TEXT NOT NULL, `runtime_epoch` TEXT NOT NULL, `owner_key` TEXT NOT NULL, `created_elapsed_ms` INTEGER NOT NULL, PRIMARY KEY(`lease_id`))",
+        "fields": [
+          {
+            "fieldPath": "leaseId",
+            "columnName": "lease_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "assetId",
+            "columnName": "asset_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "runtimeEpoch",
+            "columnName": "runtime_epoch",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ownerKey",
+            "columnName": "owner_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdElapsedMs",
+            "columnName": "created_elapsed_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "lease_id"
+          ]
+        }
+      },
+      {
+        "tableName": "runtime_sessions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`runtime_epoch` TEXT NOT NULL, `started_at_utc_ms` INTEGER NOT NULL, `ended_at_utc_ms` INTEGER, `recovery_complete` INTEGER NOT NULL, PRIMARY KEY(`runtime_epoch`))",
+        "fields": [
+          {
+            "fieldPath": "runtimeEpoch",
+            "columnName": "runtime_epoch",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startedAtUtcMs",
+            "columnName": "started_at_utc_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endedAtUtcMs",
+            "columnName": "ended_at_utc_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "recoveryComplete",
+            "columnName": "recovery_complete",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "runtime_epoch"
+          ]
+        }
+      },
+      {
+        "tableName": "engine_meta",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`singleton_id` INTEGER NOT NULL, `current_runtime_epoch` TEXT, `next_event_seq` INTEGER NOT NULL, `next_batch_seq` INTEGER NOT NULL, `next_intent_seq` INTEGER NOT NULL, `priority_revision` INTEGER NOT NULL, `monitoring_revision` INTEGER NOT NULL, `control_version` INTEGER NOT NULL, `history_clear_through_seq` INTEGER NOT NULL, `row_version` INTEGER NOT NULL, PRIMARY KEY(`singleton_id`))",
+        "fields": [
+          {
+            "fieldPath": "singletonId",
+            "columnName": "singleton_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentRuntimeEpoch",
+            "columnName": "current_runtime_epoch",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "nextEventSeq",
+            "columnName": "next_event_seq",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nextBatchSeq",
+            "columnName": "next_batch_seq",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nextIntentSeq",
+            "columnName": "next_intent_seq",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "priorityRevision",
+            "columnName": "priority_revision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "monitoringRevision",
+            "columnName": "monitoring_revision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "controlVersion",
+            "columnName": "control_version",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "historyClearThroughSeq",
+            "columnName": "history_clear_through_seq",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rowVersion",
+            "columnName": "row_version",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "singleton_id"
+          ]
+        }
+      },
+      {
+        "tableName": "monitoring_state",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`source_id` TEXT NOT NULL, `source_revision` INTEGER NOT NULL, `desired_enabled` INTEGER NOT NULL, `desired_version` INTEGER NOT NULL, `registration_key` TEXT NOT NULL, `observed_version` INTEGER, `registration_state` TEXT NOT NULL, `last_error_code` TEXT, `checked_at_utc_ms` INTEGER, `row_version` INTEGER NOT NULL, PRIMARY KEY(`source_id`, `source_revision`))",
+        "fields": [
+          {
+            "fieldPath": "sourceId",
+            "columnName": "source_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceRevision",
+            "columnName": "source_revision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "desiredEnabled",
+            "columnName": "desired_enabled",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "desiredVersion",
+            "columnName": "desired_version",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "registrationKey",
+            "columnName": "registration_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "observedVersion",
+            "columnName": "observed_version",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "registrationState",
+            "columnName": "registration_state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastErrorCode",
+            "columnName": "last_error_code",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "checkedAtUtcMs",
+            "columnName": "checked_at_utc_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "rowVersion",
+            "columnName": "row_version",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "source_id",
+            "source_revision"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_monitoring_state_registration_key",
+            "unique": true,
+            "columnNames": [
+              "registration_key"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_monitoring_state_registration_key` ON `${TABLE_NAME}` (`registration_key`)"
+          }
+        ]
+      },
+      {
+        "tableName": "source_state",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`source_id` TEXT NOT NULL, `source_revision` INTEGER NOT NULL, `state_version` INTEGER NOT NULL, `facts_json` TEXT NOT NULL, `quality_code` TEXT NOT NULL, `observation_group_id` TEXT, `observed_elapsed_ms` INTEGER, `received_elapsed_ms` INTEGER NOT NULL, `runtime_epoch` TEXT NOT NULL, `coverage_version` INTEGER NOT NULL, `source_episode_key` TEXT, `source_episode_counter` INTEGER NOT NULL, PRIMARY KEY(`source_id`, `source_revision`))",
+        "fields": [
+          {
+            "fieldPath": "sourceId",
+            "columnName": "source_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceRevision",
+            "columnName": "source_revision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stateVersion",
+            "columnName": "state_version",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "factsJson",
+            "columnName": "facts_json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "qualityCode",
+            "columnName": "quality_code",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "observationGroupId",
+            "columnName": "observation_group_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "observedElapsedMs",
+            "columnName": "observed_elapsed_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "receivedElapsedMs",
+            "columnName": "received_elapsed_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "runtimeEpoch",
+            "columnName": "runtime_epoch",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "coverageVersion",
+            "columnName": "coverage_version",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceEpisodeKey",
+            "columnName": "source_episode_key",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sourceEpisodeCounter",
+            "columnName": "source_episode_counter",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "source_id",
+            "source_revision"
+          ]
+        }
+      },
+      {
+        "tableName": "rule_episode_state",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`rule_id` TEXT NOT NULL, `revision` INTEGER NOT NULL, `activation_generation` INTEGER NOT NULL, `last_known_branch_id` TEXT, `branch_episode_key` TEXT, `branch_episode_counter` INTEGER NOT NULL, `source_episode_key` TEXT, `continuity_state` TEXT NOT NULL, `row_version` INTEGER NOT NULL, PRIMARY KEY(`rule_id`, `revision`, `activation_generation`))",
+        "fields": [
+          {
+            "fieldPath": "ruleId",
+            "columnName": "rule_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "revision",
+            "columnName": "revision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "activationGeneration",
+            "columnName": "activation_generation",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastKnownBranchId",
+            "columnName": "last_known_branch_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "branchEpisodeKey",
+            "columnName": "branch_episode_key",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "branchEpisodeCounter",
+            "columnName": "branch_episode_counter",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceEpisodeKey",
+            "columnName": "source_episode_key",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "continuityState",
+            "columnName": "continuity_state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rowVersion",
+            "columnName": "row_version",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "rule_id",
+            "revision",
+            "activation_generation"
+          ]
+        }
+      },
+      {
+        "tableName": "command_receipts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`command_id` TEXT NOT NULL, `command_kind` TEXT NOT NULL, `request_hash` TEXT NOT NULL, `subject_key` TEXT NOT NULL, `status` TEXT NOT NULL, `result_json` TEXT, `created_at_utc_ms` INTEGER NOT NULL, PRIMARY KEY(`command_id`))",
+        "fields": [
+          {
+            "fieldPath": "commandId",
+            "columnName": "command_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "commandKind",
+            "columnName": "command_kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "requestHash",
+            "columnName": "request_hash",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "subjectKey",
+            "columnName": "subject_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "resultJson",
+            "columnName": "result_json",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "createdAtUtcMs",
+            "columnName": "created_at_utc_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "command_id"
+          ]
+        }
+      },
+      {
+        "tableName": "event_inbox",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`event_id` TEXT NOT NULL, `event_seq` INTEGER NOT NULL, `event_key` TEXT NOT NULL, `event_kind` TEXT NOT NULL, `cause_key` TEXT NOT NULL, `origin_command_id` TEXT, `runtime_epoch` TEXT NOT NULL, `received_elapsed_ms` INTEGER NOT NULL, `received_at_utc_ms` INTEGER NOT NULL, `payload_version` INTEGER NOT NULL, `event_payload_json` TEXT, `processing_state` TEXT NOT NULL, `row_version` INTEGER NOT NULL, PRIMARY KEY(`event_id`))",
+        "fields": [
+          {
+            "fieldPath": "eventId",
+            "columnName": "event_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "eventSeq",
+            "columnName": "event_seq",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "eventKey",
+            "columnName": "event_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "eventKind",
+            "columnName": "event_kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "causeKey",
+            "columnName": "cause_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "originCommandId",
+            "columnName": "origin_command_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "runtimeEpoch",
+            "columnName": "runtime_epoch",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "receivedElapsedMs",
+            "columnName": "received_elapsed_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "receivedAtUtcMs",
+            "columnName": "received_at_utc_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "payloadVersion",
+            "columnName": "payload_version",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "eventPayloadJson",
+            "columnName": "event_payload_json",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "processingState",
+            "columnName": "processing_state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rowVersion",
+            "columnName": "row_version",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "event_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_event_inbox_event_seq",
+            "unique": true,
+            "columnNames": [
+              "event_seq"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_event_inbox_event_seq` ON `${TABLE_NAME}` (`event_seq`)"
+          },
+          {
+            "name": "index_event_inbox_event_key",
+            "unique": true,
+            "columnNames": [
+              "event_key"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_event_inbox_event_key` ON `${TABLE_NAME}` (`event_key`)"
+          }
+        ]
+      },
+      {
+        "tableName": "event_sources",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`event_id` TEXT NOT NULL, `source_id` TEXT NOT NULL, `source_revision` INTEGER NOT NULL, PRIMARY KEY(`event_id`, `source_id`, `source_revision`))",
+        "fields": [
+          {
+            "fieldPath": "eventId",
+            "columnName": "event_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceId",
+            "columnName": "source_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceRevision",
+            "columnName": "source_revision",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "event_id",
+            "source_id",
+            "source_revision"
+          ]
+        }
+      },
+      {
+        "tableName": "evaluation_batches",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`batch_id` TEXT NOT NULL, `batch_seq` INTEGER NOT NULL, `event_id` TEXT NOT NULL, `priority_revision` INTEGER NOT NULL, `runtime_epoch` TEXT NOT NULL, `state` TEXT NOT NULL, `created_elapsed_ms` INTEGER NOT NULL, PRIMARY KEY(`batch_id`))",
+        "fields": [
+          {
+            "fieldPath": "batchId",
+            "columnName": "batch_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "batchSeq",
+            "columnName": "batch_seq",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "eventId",
+            "columnName": "event_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "priorityRevision",
+            "columnName": "priority_revision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "runtimeEpoch",
+            "columnName": "runtime_epoch",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdElapsedMs",
+            "columnName": "created_elapsed_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "batch_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_evaluation_batches_batch_seq",
+            "unique": true,
+            "columnNames": [
+              "batch_seq"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_evaluation_batches_batch_seq` ON `${TABLE_NAME}` (`batch_seq`)"
+          },
+          {
+            "name": "index_evaluation_batches_event_id",
+            "unique": true,
+            "columnNames": [
+              "event_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_evaluation_batches_event_id` ON `${TABLE_NAME}` (`event_id`)"
+          }
+        ]
+      },
+      {
+        "tableName": "evaluation_rounds",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`round_id` TEXT NOT NULL, `batch_id` TEXT NOT NULL, `round_number` INTEGER NOT NULL, `runtime_epoch` TEXT NOT NULL, `snapshot_version` INTEGER NOT NULL, `snapshot_json` TEXT, `snapshot_hash` TEXT NOT NULL, `captured_elapsed_ms` INTEGER NOT NULL, PRIMARY KEY(`round_id`))",
+        "fields": [
+          {
+            "fieldPath": "roundId",
+            "columnName": "round_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "batchId",
+            "columnName": "batch_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "roundNumber",
+            "columnName": "round_number",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "runtimeEpoch",
+            "columnName": "runtime_epoch",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "snapshotVersion",
+            "columnName": "snapshot_version",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "snapshotJson",
+            "columnName": "snapshot_json",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "snapshotHash",
+            "columnName": "snapshot_hash",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "capturedElapsedMs",
+            "columnName": "captured_elapsed_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "round_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_evaluation_rounds_batch_id_round_number",
+            "unique": true,
+            "columnNames": [
+              "batch_id",
+              "round_number"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_evaluation_rounds_batch_id_round_number` ON `${TABLE_NAME}` (`batch_id`, `round_number`)"
+          }
+        ]
+      },
+      {
+        "tableName": "opportunities",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`opportunity_id` TEXT NOT NULL, `opportunity_key` TEXT NOT NULL, `owner_kind` TEXT NOT NULL, `batch_id` TEXT NOT NULL, `priority_position` INTEGER NOT NULL, `rule_id` TEXT, `rule_revision` INTEGER, `activation_generation` INTEGER, `test_command_id` TEXT, `cause_key` TEXT NOT NULL, `runtime_epoch` TEXT NOT NULL, `created_elapsed_ms` INTEGER NOT NULL, `deadline_elapsed_ms` INTEGER NOT NULL, `state` TEXT NOT NULL, `final_result` TEXT, `reason_code` TEXT, `history_projection_state` TEXT NOT NULL, `row_version` INTEGER NOT NULL, PRIMARY KEY(`opportunity_id`))",
+        "fields": [
+          {
+            "fieldPath": "opportunityId",
+            "columnName": "opportunity_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "opportunityKey",
+            "columnName": "opportunity_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ownerKind",
+            "columnName": "owner_kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "batchId",
+            "columnName": "batch_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "priorityPosition",
+            "columnName": "priority_position",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ruleId",
+            "columnName": "rule_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "ruleRevision",
+            "columnName": "rule_revision",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "activationGeneration",
+            "columnName": "activation_generation",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "testCommandId",
+            "columnName": "test_command_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "causeKey",
+            "columnName": "cause_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "runtimeEpoch",
+            "columnName": "runtime_epoch",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdElapsedMs",
+            "columnName": "created_elapsed_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deadlineElapsedMs",
+            "columnName": "deadline_elapsed_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "finalResult",
+            "columnName": "final_result",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "reasonCode",
+            "columnName": "reason_code",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "historyProjectionState",
+            "columnName": "history_projection_state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rowVersion",
+            "columnName": "row_version",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "opportunity_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_opportunities_opportunity_key",
+            "unique": true,
+            "columnNames": [
+              "opportunity_key"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_opportunities_opportunity_key` ON `${TABLE_NAME}` (`opportunity_key`)"
+          },
+          {
+            "name": "index_opportunities_test_command_id",
+            "unique": true,
+            "columnNames": [
+              "test_command_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_opportunities_test_command_id` ON `${TABLE_NAME}` (`test_command_id`)"
+          },
+          {
+            "name": "index_opportunities_batch_id_priority_position",
+            "unique": true,
+            "columnNames": [
+              "batch_id",
+              "priority_position"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_opportunities_batch_id_priority_position` ON `${TABLE_NAME}` (`batch_id`, `priority_position`)"
+          },
+          {
+            "name": "index_opportunities_rule_id_rule_revision_activation_generation_cause_key",
+            "unique": true,
+            "columnNames": [
+              "rule_id",
+              "rule_revision",
+              "activation_generation",
+              "cause_key"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_opportunities_rule_id_rule_revision_activation_generation_cause_key` ON `${TABLE_NAME}` (`rule_id`, `rule_revision`, `activation_generation`, `cause_key`)"
+          }
+        ]
+      },
+      {
+        "tableName": "round_decisions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`round_id` TEXT NOT NULL, `opportunity_id` TEXT NOT NULL, `selected_branch_id` TEXT, `decision_code` TEXT NOT NULL, `reason_code` TEXT, `decision_json` TEXT, PRIMARY KEY(`round_id`, `opportunity_id`))",
+        "fields": [
+          {
+            "fieldPath": "roundId",
+            "columnName": "round_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "opportunityId",
+            "columnName": "opportunity_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "selectedBranchId",
+            "columnName": "selected_branch_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "decisionCode",
+            "columnName": "decision_code",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reasonCode",
+            "columnName": "reason_code",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "decisionJson",
+            "columnName": "decision_json",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "round_id",
+            "opportunity_id"
+          ]
+        }
+      },
+      {
+        "tableName": "episode_claims",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`rule_id` TEXT NOT NULL, `rule_revision` INTEGER NOT NULL, `activation_generation` INTEGER NOT NULL, `branch_id` TEXT NOT NULL, `episode_key` TEXT NOT NULL, `first_opportunity_id` TEXT, `claim_outcome` TEXT NOT NULL, PRIMARY KEY(`rule_id`, `rule_revision`, `activation_generation`, `branch_id`, `episode_key`))",
+        "fields": [
+          {
+            "fieldPath": "ruleId",
+            "columnName": "rule_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ruleRevision",
+            "columnName": "rule_revision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "activationGeneration",
+            "columnName": "activation_generation",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "branchId",
+            "columnName": "branch_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "episodeKey",
+            "columnName": "episode_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firstOpportunityId",
+            "columnName": "first_opportunity_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "claimOutcome",
+            "columnName": "claim_outcome",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "rule_id",
+            "rule_revision",
+            "activation_generation",
+            "branch_id",
+            "episode_key"
+          ]
+        }
+      },
+      {
+        "tableName": "plans",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`plan_id` TEXT NOT NULL, `opportunity_id` TEXT NOT NULL, `decision_round_id` TEXT NOT NULL, `intent_seq` INTEGER NOT NULL, `runtime_epoch` TEXT NOT NULL, `state` TEXT NOT NULL, `context_json` TEXT, `created_elapsed_ms` INTEGER NOT NULL, `row_version` INTEGER NOT NULL, PRIMARY KEY(`plan_id`))",
+        "fields": [
+          {
+            "fieldPath": "planId",
+            "columnName": "plan_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "opportunityId",
+            "columnName": "opportunity_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "decisionRoundId",
+            "columnName": "decision_round_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "intentSeq",
+            "columnName": "intent_seq",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "runtimeEpoch",
+            "columnName": "runtime_epoch",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contextJson",
+            "columnName": "context_json",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "createdElapsedMs",
+            "columnName": "created_elapsed_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rowVersion",
+            "columnName": "row_version",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "plan_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_plans_opportunity_id",
+            "unique": true,
+            "columnNames": [
+              "opportunity_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_plans_opportunity_id` ON `${TABLE_NAME}` (`opportunity_id`)"
+          },
+          {
+            "name": "index_plans_intent_seq",
+            "unique": true,
+            "columnNames": [
+              "intent_seq"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_plans_intent_seq` ON `${TABLE_NAME}` (`intent_seq`)"
+          }
+        ]
+      },
+      {
+        "tableName": "plan_targets",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`plan_id` TEXT NOT NULL, `resource_key` TEXT NOT NULL, `intent_seq` INTEGER NOT NULL, PRIMARY KEY(`plan_id`, `resource_key`))",
+        "fields": [
+          {
+            "fieldPath": "planId",
+            "columnName": "plan_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "resourceKey",
+            "columnName": "resource_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "intentSeq",
+            "columnName": "intent_seq",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "plan_id",
+            "resource_key"
+          ]
+        }
+      },
+      {
+        "tableName": "target_heads",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`resource_key` TEXT NOT NULL, `intent_seq` INTEGER NOT NULL, `current_plan_id` TEXT, `runtime_epoch` TEXT NOT NULL, `row_version` INTEGER NOT NULL, PRIMARY KEY(`resource_key`))",
+        "fields": [
+          {
+            "fieldPath": "resourceKey",
+            "columnName": "resource_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "intentSeq",
+            "columnName": "intent_seq",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentPlanId",
+            "columnName": "current_plan_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "runtimeEpoch",
+            "columnName": "runtime_epoch",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rowVersion",
+            "columnName": "row_version",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "resource_key"
+          ]
+        }
+      },
+      {
+        "tableName": "action_attempts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`attempt_id` TEXT NOT NULL, `plan_id` TEXT NOT NULL, `step_index` INTEGER NOT NULL, `action_id` TEXT NOT NULL, `effect_key` TEXT NOT NULL, `action_kind` TEXT NOT NULL, `action_params_json` TEXT, `asset_id` TEXT, `runtime_epoch` TEXT NOT NULL, `phase` TEXT NOT NULL, `result_code` TEXT, `reason_code` TEXT, `prepared_elapsed_ms` INTEGER NOT NULL, `requesting_elapsed_ms` INTEGER, `finished_at_utc_ms` INTEGER, `evidence_json` TEXT, `payload_retained` INTEGER NOT NULL, `row_version` INTEGER NOT NULL, PRIMARY KEY(`attempt_id`))",
+        "fields": [
+          {
+            "fieldPath": "attemptId",
+            "columnName": "attempt_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "planId",
+            "columnName": "plan_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stepIndex",
+            "columnName": "step_index",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "actionId",
+            "columnName": "action_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "effectKey",
+            "columnName": "effect_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "actionKind",
+            "columnName": "action_kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "actionParamsJson",
+            "columnName": "action_params_json",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "assetId",
+            "columnName": "asset_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "runtimeEpoch",
+            "columnName": "runtime_epoch",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "phase",
+            "columnName": "phase",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "resultCode",
+            "columnName": "result_code",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "reasonCode",
+            "columnName": "reason_code",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "preparedElapsedMs",
+            "columnName": "prepared_elapsed_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "requestingElapsedMs",
+            "columnName": "requesting_elapsed_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "finishedAtUtcMs",
+            "columnName": "finished_at_utc_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "evidenceJson",
+            "columnName": "evidence_json",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "payloadRetained",
+            "columnName": "payload_retained",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rowVersion",
+            "columnName": "row_version",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "attempt_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_action_attempts_effect_key",
+            "unique": true,
+            "columnNames": [
+              "effect_key"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_action_attempts_effect_key` ON `${TABLE_NAME}` (`effect_key`)"
+          },
+          {
+            "name": "index_action_attempts_plan_id_step_index",
+            "unique": true,
+            "columnNames": [
+              "plan_id",
+              "step_index"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_action_attempts_plan_id_step_index` ON `${TABLE_NAME}` (`plan_id`, `step_index`)"
+          }
+        ]
+      },
+      {
+        "tableName": "outbox",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`outbox_id` TEXT NOT NULL, `delivery_key` TEXT NOT NULL, `work_kind` TEXT NOT NULL, `reference_id` TEXT, `expected_runtime_epoch` TEXT, `expected_monitoring_revision` INTEGER, `state` TEXT NOT NULL, `external_work_id` TEXT, `dispatch_count` INTEGER NOT NULL, `next_dispatch_at_utc_ms` INTEGER, `last_error_code` TEXT, `created_at_utc_ms` INTEGER NOT NULL, PRIMARY KEY(`outbox_id`))",
+        "fields": [
+          {
+            "fieldPath": "outboxId",
+            "columnName": "outbox_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deliveryKey",
+            "columnName": "delivery_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workKind",
+            "columnName": "work_kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "referenceId",
+            "columnName": "reference_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "expectedRuntimeEpoch",
+            "columnName": "expected_runtime_epoch",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "expectedMonitoringRevision",
+            "columnName": "expected_monitoring_revision",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "externalWorkId",
+            "columnName": "external_work_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "dispatchCount",
+            "columnName": "dispatch_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nextDispatchAtUtcMs",
+            "columnName": "next_dispatch_at_utc_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "lastErrorCode",
+            "columnName": "last_error_code",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "createdAtUtcMs",
+            "columnName": "created_at_utc_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "outbox_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_outbox_delivery_key",
+            "unique": true,
+            "columnNames": [
+              "delivery_key"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_outbox_delivery_key` ON `${TABLE_NAME}` (`delivery_key`)"
+          }
+        ]
+      },
+      {
+        "tableName": "execution_history",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`history_id` TEXT NOT NULL, `opportunity_key` TEXT NOT NULL, `origin_event_seq` INTEGER NOT NULL, `rule_id_snapshot` TEXT, `rule_revision_snapshot` INTEGER, `rule_name_snapshot` TEXT NOT NULL, `origin_kind` TEXT NOT NULL, `branch_label_snapshot` TEXT, `source_labels_json` TEXT NOT NULL, `summary_result` TEXT NOT NULL, `reason_code` TEXT, `started_at_utc_ms` INTEGER NOT NULL, `finished_at_utc_ms` INTEGER NOT NULL, PRIMARY KEY(`history_id`))",
+        "fields": [
+          {
+            "fieldPath": "historyId",
+            "columnName": "history_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "opportunityKey",
+            "columnName": "opportunity_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "originEventSeq",
+            "columnName": "origin_event_seq",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ruleIdSnapshot",
+            "columnName": "rule_id_snapshot",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "ruleRevisionSnapshot",
+            "columnName": "rule_revision_snapshot",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "ruleNameSnapshot",
+            "columnName": "rule_name_snapshot",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "originKind",
+            "columnName": "origin_kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "branchLabelSnapshot",
+            "columnName": "branch_label_snapshot",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sourceLabelsJson",
+            "columnName": "source_labels_json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "summaryResult",
+            "columnName": "summary_result",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reasonCode",
+            "columnName": "reason_code",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "startedAtUtcMs",
+            "columnName": "started_at_utc_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "finishedAtUtcMs",
+            "columnName": "finished_at_utc_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "history_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_execution_history_opportunity_key",
+            "unique": true,
+            "columnNames": [
+              "opportunity_key"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_execution_history_opportunity_key` ON `${TABLE_NAME}` (`opportunity_key`)"
+          },
+          {
+            "name": "index_execution_history_finished_at_utc_ms_history_id",
+            "unique": false,
+            "columnNames": [
+              "finished_at_utc_ms",
+              "history_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_execution_history_finished_at_utc_ms_history_id` ON `${TABLE_NAME}` (`finished_at_utc_ms`, `history_id`)"
+          },
+          {
+            "name": "index_execution_history_rule_id_snapshot_finished_at_utc_ms_history_id",
+            "unique": false,
+            "columnNames": [
+              "rule_id_snapshot",
+              "finished_at_utc_ms",
+              "history_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_execution_history_rule_id_snapshot_finished_at_utc_ms_history_id` ON `${TABLE_NAME}` (`rule_id_snapshot`, `finished_at_utc_ms`, `history_id`)"
+          }
+        ]
+      },
+      {
+        "tableName": "action_history",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`history_id` TEXT NOT NULL, `step_index` INTEGER NOT NULL, `action_id_snapshot` TEXT NOT NULL, `action_kind` TEXT NOT NULL, `target_summary_json` TEXT NOT NULL, `result_code` TEXT NOT NULL, `reason_code` TEXT, `evidence_level` TEXT NOT NULL, `evidence_summary_json` TEXT, PRIMARY KEY(`history_id`, `step_index`))",
+        "fields": [
+          {
+            "fieldPath": "historyId",
+            "columnName": "history_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stepIndex",
+            "columnName": "step_index",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "actionIdSnapshot",
+            "columnName": "action_id_snapshot",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "actionKind",
+            "columnName": "action_kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "targetSummaryJson",
+            "columnName": "target_summary_json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "resultCode",
+            "columnName": "result_code",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reasonCode",
+            "columnName": "reason_code",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "evidenceLevel",
+            "columnName": "evidence_level",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "evidenceSummaryJson",
+            "columnName": "evidence_summary_json",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "history_id",
+            "step_index"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9f5bc82d3d9ff32a9455e3038eb4e10c')"
+    ]
+  }
+}

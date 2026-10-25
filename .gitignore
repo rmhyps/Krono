@@ -1,0 +1,28 @@
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Module build directories
+**/build/
+build/
+app/build/
+core/engine/build/
+core/runtime/build/
+data/local/build/
+platform/android/build/
+
+# Kotlin cache
+.kotlin/
+
+# Temporary diagnostic files from audit
+*.log
+s2_service_state.txt
+baseline_permissions.txt
+checkpoint_tahap4/
