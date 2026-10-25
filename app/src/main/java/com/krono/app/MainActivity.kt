@@ -17,6 +17,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,7 +53,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            KronoTheme {
+            val themeMode by viewModel.themeMode.collectAsState()
+            KronoTheme(themeMode = themeMode) {
                 KronoApp(viewModel = viewModel)
             }
         }
@@ -138,6 +140,7 @@ fun KronoApp(viewModel: KronoViewModel) {
                 }
                 ScreenRoute.SETTINGS -> {
                     SettingsScreen(
+                        viewModel = viewModel,
                         onNavigateBack = {
                             currentRoute = ScreenRoute.RULES
                         }

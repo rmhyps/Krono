@@ -99,6 +99,11 @@ class KronoRuntimeCoordinator(
                         event.causeKey
                     } else null
                 }
+                TriggerFamily.WIFI -> {
+                    if (selection is BranchSelectionResult.Match) {
+                        event.causeKey
+                    } else null
+                }
             }
 
             if (selection is BranchSelectionResult.Match && episodeKey != null) {

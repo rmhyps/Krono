@@ -7,14 +7,17 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -60,6 +63,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -75,12 +79,14 @@ import com.krono.app.ui.components.LogicBlock
 import com.krono.app.ui.components.MapPickerDialog
 import com.krono.app.ui.components.TriggerPickerDialog
 import com.krono.app.ui.components.WallpaperCropDialog
+import com.krono.app.ui.components.WifiNetworkPickerDialog
 import com.krono.app.ui.theme.KronoBackground
 import com.krono.app.ui.theme.KronoError
 import com.krono.app.ui.theme.KronoOnPrimary
 import com.krono.app.ui.theme.KronoOnSurface
 import com.krono.app.ui.theme.KronoOnSurfaceVariant
 import com.krono.app.ui.theme.KronoOutline
+import com.krono.app.ui.theme.KronoOutlineVariant
 import com.krono.app.ui.theme.KronoPrimary
 import com.krono.app.ui.theme.KronoSecondary
 import com.krono.app.ui.theme.KronoSurface
@@ -102,6 +108,7 @@ import com.krono.core.model.TriggerDefinition
 import com.krono.core.model.TriggerFamily
 import com.krono.core.model.TriggerKind
 import com.krono.core.model.WallpaperTarget
+import com.krono.core.model.RingerModeTarget
 import com.krono.core.validation.RuleValidationResult
 import com.krono.core.validation.RuleValidator
 import kotlinx.coroutines.launch
@@ -112,12 +119,14 @@ class EditableActionState(
     initialKind: ActionKind = ActionKind.SET_MEDIA_VOLUME,
     initialVolume: Int = 20,
     initialWallpaperTarget: WallpaperTarget = WallpaperTarget.SYSTEM,
-    initialAssetId: String = KronoFixtures.ASSET_IMAGE_A_ID
+    initialAssetId: String = KronoFixtures.ASSET_IMAGE_A_ID,
+    initialRingerMode: RingerModeTarget = RingerModeTarget.NORMAL
 ) {
     var kind by mutableStateOf(initialKind)
     var volumePercent by mutableFloatStateOf(initialVolume.toFloat())
     var wallpaperTarget by mutableStateOf(initialWallpaperTarget)
     var assetId by mutableStateOf(initialAssetId)
+    var ringerMode by mutableStateOf(initialRingerMode)
 
     fun toDomain(): ActionDefinition {
         return when (kind) {
@@ -131,6 +140,11 @@ class EditableActionState(
                 kind = ActionKind.SET_WALLPAPER,
                 assetId = assetId.ifBlank { KronoFixtures.ASSET_IMAGE_A_ID },
                 wallpaperTarget = wallpaperTarget
+            )
+            ActionKind.SET_RINGER_MODE -> ActionDefinition(
+                actionId = actionId,
+                kind = ActionKind.SET_RINGER_MODE,
+                ringerMode = ringerMode
             )
         }
     }
@@ -169,6 +183,14 @@ class EditableBranchState(
             PredicateKind.BLUETOOTH_IS_DISCONNECTED -> ConditionPredicate(
                 kind = PredicateKind.BLUETOOTH_IS_DISCONNECTED,
                 deviceId = targetId.ifBlank { KronoFixtures.TWS_DEVICE_ID }
+            )
+            PredicateKind.WIFI_IS_CONNECTED -> ConditionPredicate(
+                kind = PredicateKind.WIFI_IS_CONNECTED,
+                wifiSsid = targetId.ifBlank { "MyWiFi" }
+            )
+            PredicateKind.WIFI_IS_DISCONNECTED -> ConditionPredicate(
+                kind = PredicateKind.WIFI_IS_DISCONNECTED,
+                wifiSsid = targetId.ifBlank { "MyWiFi" }
             )
             PredicateKind.ALWAYS -> ConditionPredicate(kind = PredicateKind.ALWAYS)
             PredicateKind.NONE -> ConditionPredicate(kind = PredicateKind.NONE)
@@ -216,6 +238,7 @@ fun EditorScreen(
 
     var showTriggerPicker by remember { mutableStateOf(false) }
     var showBluetoothPicker by remember { mutableStateOf(false) }
+    var showWifiPicker by remember { mutableStateOf(false) }
     var actionPickerTargetBranchIndex by remember { mutableStateOf<Int?>(null) }
     var isAddingActionToElse by remember { mutableStateOf(false) }
     var mapPickerTargetBranch by remember { mutableStateOf<EditableBranchState?>(null) }
@@ -342,7 +365,26 @@ fun EditorScreen(
             return null
         }
 
-        val name = ruleName.trim().ifBlank { "Aturan Baru" }
+        val autoGeneratedName = run {
+            val trig = when (family) {
+                TriggerFamily.LOCATION -> "Lokasi " + (branches.firstOrNull()?.targetId?.ifBlank { "Area" } ?: "Area")
+                TriggerFamily.BLUETOOTH -> if (triggerDeviceName.isNotBlank()) triggerDeviceName else "Bluetooth"
+                TriggerFamily.WIFI -> "Wi-Fi " + (branches.firstOrNull()?.targetId?.ifBlank { triggerDeviceId.ifBlank { "Tersambung" } } ?: "Tersambung")
+            }
+            val firstAct = branches.firstOrNull()?.actions?.firstOrNull()
+            val act = when (firstAct?.kind) {
+                ActionKind.SET_WALLPAPER -> "Ganti Wallpaper"
+                ActionKind.SET_MEDIA_VOLUME -> "Volume ${firstAct.volumePercent.toInt()}%"
+                ActionKind.SET_RINGER_MODE -> "Mode ${when (firstAct.ringerMode) {
+                    RingerModeTarget.NORMAL -> "Normal"
+                    RingerModeTarget.VIBRATE -> "Getar"
+                    RingerModeTarget.SILENT -> "Hening"
+                }}"
+                null -> "Aksi Otomasi"
+            }
+            "$trig -> $act"
+        }
+        val name = ruleName.trim().ifBlank { autoGeneratedName }
 
         if (!isAdvancedBranching) {
             val singleBranch = branches.firstOrNull()
@@ -364,6 +406,28 @@ fun EditorScreen(
                             family = TriggerFamily.BLUETOOTH,
                             kind = selectedKind ?: TriggerKind.BLUETOOTH_CONNECTED,
                             deviceId = devId
+                        ),
+                        branches = listOf(
+                            BranchDefinition(
+                                branchId = "b1",
+                                kind = BranchKind.ALWAYS,
+                                condition = ConditionPredicate(kind = PredicateKind.ALWAYS),
+                                actions = actions
+                            )
+                        ),
+                        elseBranch = null
+                    )
+                }
+                TriggerFamily.WIFI -> {
+                    val ssid = singleBranch.targetId.trim().ifBlank { triggerDeviceId.trim().ifBlank { "MyWiFi" } }
+                    RuleDefinition(
+                        ruleId = ruleId,
+                        name = name,
+                        mode = RuleMode.SIMPLE,
+                        trigger = TriggerDefinition(
+                            family = TriggerFamily.WIFI,
+                            kind = selectedKind ?: TriggerKind.WIFI_CONNECTED,
+                            wifiSsid = ssid
                         ),
                         branches = listOf(
                             BranchDefinition(
@@ -412,6 +476,14 @@ fun EditorScreen(
                     kind = selectedKind ?: TriggerKind.BLUETOOTH_CONNECTED,
                     deviceId = triggerDeviceId.ifBlank { KronoFixtures.TWS_DEVICE_ID }
                 )
+                TriggerFamily.WIFI -> {
+                    val ssid = branches.firstOrNull()?.targetId?.trim()?.ifBlank { triggerDeviceId.trim().ifBlank { "MyWiFi" } } ?: "MyWiFi"
+                    TriggerDefinition(
+                        family = TriggerFamily.WIFI,
+                        kind = selectedKind ?: TriggerKind.WIFI_CONNECTED,
+                        wifiSsid = ssid
+                    )
+                }
                 TriggerFamily.LOCATION -> {
                     val areaIds = branches.map { it.targetId.trim().ifBlank { "area-${it.branchId}" } }.distinct()
                     TriggerDefinition(
@@ -494,11 +566,14 @@ fun EditorScreen(
                 label = { Text("Nama Aturan") },
                 placeholder = { Text("Contoh: Otomasi TWS, Otomasi Kampus") },
                 modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = KronoPrimary,
-                    unfocusedBorderColor = KronoOutline,
+                    unfocusedBorderColor = KronoOutline.copy(alpha = 0.4f),
                     focusedTextColor = KronoOnSurface,
-                    unfocusedTextColor = KronoOnSurface
+                    unfocusedTextColor = KronoOnSurface,
+                    focusedLabelColor = KronoPrimary,
+                    unfocusedLabelColor = KronoOnSurfaceVariant
                 )
             )
 
@@ -539,7 +614,12 @@ fun EditorScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = if (selectedFamily == TriggerFamily.BLUETOOTH) "Perangkat Bluetooth" else "Sensor Lokasi / Geofence",
+                                text = when (selectedFamily) {
+                                    TriggerFamily.BLUETOOTH -> "Perangkat Bluetooth"
+                                    TriggerFamily.WIFI -> "Jaringan Wi-Fi"
+                                    TriggerFamily.LOCATION -> "Sensor Lokasi / Geofence"
+                                    null -> ""
+                                },
                                 color = KronoOnSurfaceVariant,
                                 fontSize = 12.sp,
                                 fontFamily = FontFamily.Monospace
@@ -595,6 +675,44 @@ fun EditorScreen(
                                     shape = RoundedCornerShape(8.dp)
                                 ) {
                                     Text("Pilih Perangkat", color = KronoSecondary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                    } else if (selectedFamily == TriggerFamily.WIFI) {
+                        Card(
+                            shape = RoundedCornerShape(10.dp),
+                            colors = CardDefaults.cardColors(containerColor = KronoSurfaceHigh),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                val branch0 = branches.firstOrNull()
+                                val currentSsid = branch0?.targetId ?: triggerDeviceId
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = if (currentSsid.isNotBlank()) currentSsid else "Belum Ada Wi-Fi Dipilih",
+                                            color = KronoOnSurface,
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                        Text(
+                                            text = if (currentSsid.isNotBlank()) "Target SSID" else "Tekan tombol untuk memilih dari daftar",
+                                            color = KronoOnSurfaceVariant,
+                                            fontSize = 11.sp,
+                                            fontFamily = FontFamily.Monospace
+                                        )
+                                    }
+                                    Button(
+                                        onClick = { showWifiPicker = true },
+                                        colors = ButtonDefaults.buttonColors(containerColor = KronoSecondary.copy(alpha = 0.2f)),
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Text("Pilih Jaringan", color = KronoSecondary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    }
                                 }
                             }
                         }
@@ -713,11 +831,13 @@ fun EditorScreen(
                             actionPickerTargetBranchIndex = 0
                             isAddingActionToElse = false
                         },
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, KronoOutline.copy(alpha = 0.4f)),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = null, tint = KronoTertiary)
+                        Icon(Icons.Default.Add, contentDescription = null, tint = KronoPrimary, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Tambah Aksi", color = KronoTertiary, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        Text("Tambah Aksi", color = KronoOnSurface, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
 
@@ -893,11 +1013,10 @@ fun EditorScreen(
                             Spacer(modifier = Modifier.height(14.dp))
 
                             Text(
-                                text = "LAKUKAN (Aksi di Cabang Ini):",
-                                color = KronoTertiary,
+                                text = "Aksi di Cabang Ini:",
+                                color = KronoOnSurfaceVariant,
                                 fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = FontFamily.Monospace
+                                fontWeight = FontWeight.SemiBold
                             )
 
                             Spacer(modifier = Modifier.height(8.dp))
@@ -932,11 +1051,13 @@ fun EditorScreen(
                                     actionPickerTargetBranchIndex = branchIndex
                                     isAddingActionToElse = false
                                 },
+                                shape = RoundedCornerShape(12.dp),
+                                border = BorderStroke(1.dp, KronoOutline.copy(alpha = 0.4f)),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Icon(Icons.Default.Add, contentDescription = null, tint = KronoTertiary)
+                                Icon(Icons.Default.Add, contentDescription = null, tint = KronoPrimary, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text("Tambah Aksi ke Cabang Ini", color = KronoTertiary, fontSize = 13.sp)
+                                Text("Tambah Aksi ke Cabang Ini", color = KronoOnSurface, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }
@@ -1076,9 +1197,11 @@ fun EditorScreen(
                             onOpenSimulation(currentRule)
                         }
                     },
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, KronoOutline.copy(alpha = 0.4f)),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Simulasikan", color = KronoPrimary)
+                    Text("Simulasikan", color = KronoOnSurface, fontWeight = FontWeight.Medium)
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 OutlinedButton(
@@ -1086,13 +1209,26 @@ fun EditorScreen(
                         val firstAction = branches.firstOrNull()?.actions?.firstOrNull()?.toDomain()
                         if (firstAction != null) {
                             viewModel.executeTestAction(firstAction)
+                            val feedbackMsg = when (firstAction.kind) {
+                                ActionKind.SET_WALLPAPER -> "Menguji pemasangan wallpaper..."
+                                ActionKind.SET_MEDIA_VOLUME -> "Menguji volume media: ${firstAction.volumePercent}%"
+                                ActionKind.SET_RINGER_MODE -> "Menguji mode suara: ${when (firstAction.ringerMode) {
+                                    RingerModeTarget.NORMAL -> "Normal"
+                                    RingerModeTarget.VIBRATE -> "Getar"
+                                    RingerModeTarget.SILENT -> "Hening"
+                                    null -> "Normal"
+                                }}"
+                            }
+                            android.widget.Toast.makeText(context, feedbackMsg, android.widget.Toast.LENGTH_SHORT).show()
                         } else {
                             validationErrorMessage = "Tambahkan minimal satu aksi untuk diuji"
                         }
                     },
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, KronoPrimary.copy(alpha = 0.5f)),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Uji Aksi Nyata", color = KronoTertiary)
+                    Text("Uji Aksi Nyata", color = KronoPrimary, fontWeight = FontWeight.SemiBold)
                 }
             }
 
@@ -1142,6 +1278,7 @@ fun EditorScreen(
                     selectedKind = kind
                     triggerTitle = title
                     validationErrorMessage = null
+                    showTriggerPicker = false
                     if (family == TriggerFamily.LOCATION) {
                         branches.forEachIndexed { i, b ->
                             b.conditionKind = PredicateKind.LOCATION_IN_AREA
@@ -1149,11 +1286,18 @@ fun EditorScreen(
                                 b.targetId = ""
                             }
                         }
-                    } else {
+                    } else if (family == TriggerFamily.BLUETOOTH) {
                         branches.forEach { b ->
                             b.conditionKind = PredicateKind.ALWAYS
                             b.targetId = triggerDeviceId
                         }
+                        showBluetoothPicker = true
+                    } else if (family == TriggerFamily.WIFI) {
+                        branches.forEach { b ->
+                            b.conditionKind = PredicateKind.ALWAYS
+                            b.targetId = triggerDeviceId
+                        }
+                        showWifiPicker = true
                     }
                 }
             )
@@ -1165,6 +1309,16 @@ fun EditorScreen(
                 onDeviceSelected = { name, address ->
                     triggerDeviceName = name
                     triggerDeviceId = address
+                }
+            )
+        }
+
+        if (showWifiPicker) {
+            WifiNetworkPickerDialog(
+                onDismiss = { showWifiPicker = false },
+                onWifiSelected = { ssid ->
+                    triggerDeviceId = ssid
+                    branches.firstOrNull()?.targetId = ssid
                 }
             )
         }
@@ -1300,62 +1454,117 @@ fun ActionEditorRow(
     }
 
     Card(
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = KronoSurfaceHigh),
+        border = BorderStroke(1.dp, KronoOutline.copy(alpha = 0.35f)),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(modifier = Modifier.padding(14.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = if (actionState.kind == ActionKind.SET_MEDIA_VOLUME) "Atur Volume Media" else "Ganti Wallpaper Layar",
-                    color = KronoTertiary,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold
+                    text = when (actionState.kind) {
+                        ActionKind.SET_MEDIA_VOLUME -> "Atur Volume Media"
+                        ActionKind.SET_WALLPAPER -> "Ganti Wallpaper Layar"
+                        ActionKind.SET_RINGER_MODE -> "Ubah Mode Suara"
+                    },
+                    color = KronoOnSurface,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold
                 )
 
-                IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "Hapus Aksi", tint = KronoError)
+                IconButton(
+                    onClick = onDelete,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Hapus Aksi",
+                        tint = KronoOnSurfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.size(18.dp)
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             when (actionState.kind) {
                 ActionKind.SET_MEDIA_VOLUME -> {
-                    Text(
-                        text = "Volume Target: ${actionState.volumePercent.toInt()}%",
-                        color = KronoOnSurface,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Tingkat Volume",
+                            color = KronoOnSurfaceVariant,
+                            fontSize = 13.sp
+                        )
+                        Text(
+                            text = "${actionState.volumePercent.toInt()}%",
+                            color = KronoPrimary,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                     Slider(
                         value = actionState.volumePercent,
                         onValueChange = { actionState.volumePercent = it },
                         valueRange = 0f..100f,
                         colors = SliderDefaults.colors(
-                            thumbColor = KronoTertiary,
-                            activeTrackColor = KronoTertiary
+                            thumbColor = KronoPrimary,
+                            activeTrackColor = KronoPrimary,
+                            inactiveTrackColor = KronoOutlineVariant
                         )
                     )
                 }
                 ActionKind.SET_WALLPAPER -> {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Target Layar:", color = KronoOnSurface, fontSize = 13.sp)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        OutlinedButton(
-                            onClick = {
-                                actionState.wallpaperTarget = when (actionState.wallpaperTarget) {
-                                    WallpaperTarget.SYSTEM -> WallpaperTarget.LOCK
-                                    WallpaperTarget.LOCK -> WallpaperTarget.BOTH
-                                    WallpaperTarget.BOTH -> WallpaperTarget.SYSTEM
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = "Target Layar",
+                            color = KronoOnSurfaceVariant,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(KronoSurfaceContainer, RoundedCornerShape(10.dp))
+                                .border(BorderStroke(1.dp, KronoOutline.copy(alpha = 0.35f)), RoundedCornerShape(10.dp))
+                                .padding(3.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            listOf(
+                                WallpaperTarget.SYSTEM to "Utama",
+                                WallpaperTarget.LOCK to "Kunci",
+                                WallpaperTarget.BOTH to "Keduanya"
+                            ).forEach { (target, label) ->
+                                val isSelected = actionState.wallpaperTarget == target
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .background(
+                                            color = if (isSelected) KronoPrimary else Color.Transparent,
+                                            shape = RoundedCornerShape(8.dp)
+                                        )
+                                        .clickable { actionState.wallpaperTarget = target }
+                                        .padding(vertical = 8.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = label,
+                                        fontSize = 12.sp,
+                                        maxLines = 1,
+                                        softWrap = false,
+                                        color = if (isSelected) KronoOnPrimary else KronoOnSurfaceVariant,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                    )
                                 }
                             }
-                        ) {
-                            Text(actionState.wallpaperTarget.name, fontSize = 11.sp, color = KronoTertiary)
                         }
                     }
 
@@ -1385,7 +1594,7 @@ fun ActionEditorRow(
                                 modifier = Modifier
                                     .size(64.dp)
                                     .clip(RoundedCornerShape(8.dp))
-                                    .border(1.dp, KronoOutline, RoundedCornerShape(8.dp)),
+                                    .border(1.dp, KronoOutline.copy(alpha = 0.5f), RoundedCornerShape(8.dp)),
                                 contentScale = ContentScale.Crop
                             )
                             Spacer(modifier = Modifier.width(12.dp))
@@ -1394,12 +1603,12 @@ fun ActionEditorRow(
                         Column(modifier = Modifier.weight(1f)) {
                             Button(
                                 onClick = { photoPickerLauncher.launch("image/*") },
-                                colors = ButtonDefaults.buttonColors(containerColor = KronoTertiary.copy(alpha = 0.2f)),
+                                colors = ButtonDefaults.buttonColors(containerColor = KronoPrimary.copy(alpha = 0.15f)),
                                 shape = RoundedCornerShape(8.dp)
                             ) {
                                 Text(
                                     text = if (isImporting) "Menyimpan..." else "Pilih dari Galeri / Berkas",
-                                    color = KronoTertiary,
+                                    color = KronoPrimary,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -1411,6 +1620,53 @@ fun ActionEditorRow(
                                 fontSize = 10.sp,
                                 fontFamily = FontFamily.Monospace
                             )
+                        }
+                    }
+                }
+                ActionKind.SET_RINGER_MODE -> {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = "Mode Suara",
+                            color = KronoOnSurfaceVariant,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(KronoSurfaceContainer, RoundedCornerShape(10.dp))
+                                .border(BorderStroke(1.dp, KronoOutline.copy(alpha = 0.35f)), RoundedCornerShape(10.dp))
+                                .padding(3.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            listOf(
+                                RingerModeTarget.NORMAL to "Normal",
+                                RingerModeTarget.VIBRATE to "Getar",
+                                RingerModeTarget.SILENT to "Hening"
+                            ).forEach { (target, label) ->
+                                val isSelected = actionState.ringerMode == target
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .background(
+                                            color = if (isSelected) KronoPrimary else Color.Transparent,
+                                            shape = RoundedCornerShape(8.dp)
+                                        )
+                                        .clickable { actionState.ringerMode = target }
+                                        .padding(vertical = 8.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = label,
+                                        fontSize = 12.sp,
+                                        maxLines = 1,
+                                        softWrap = false,
+                                        color = if (isSelected) KronoOnPrimary else KronoOnSurfaceVariant,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                    )
+                                }
+                            }
                         }
                     }
                 }

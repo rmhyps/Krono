@@ -30,6 +30,22 @@ object RuleEvaluator {
                     BluetoothConnectionState.UNKNOWN, null -> ConditionResult.Unknown("Bluetooth state not observed")
                 }
             }
+            PredicateKind.WIFI_IS_CONNECTED -> {
+                val ssid = predicate.wifiSsid ?: return ConditionResult.Unknown("Wi-Fi SSID missing")
+                when (snapshot.wifiStates[ssid]) {
+                    WifiConnectionState.CONNECTED -> ConditionResult.True
+                    WifiConnectionState.DISCONNECTED -> ConditionResult.False
+                    WifiConnectionState.UNKNOWN, null -> ConditionResult.Unknown("Wi-Fi state not observed")
+                }
+            }
+            PredicateKind.WIFI_IS_DISCONNECTED -> {
+                val ssid = predicate.wifiSsid ?: return ConditionResult.Unknown("Wi-Fi SSID missing")
+                when (snapshot.wifiStates[ssid]) {
+                    WifiConnectionState.DISCONNECTED -> ConditionResult.True
+                    WifiConnectionState.CONNECTED -> ConditionResult.False
+                    WifiConnectionState.UNKNOWN, null -> ConditionResult.Unknown("Wi-Fi state not observed")
+                }
+            }
         }
     }
 

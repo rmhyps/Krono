@@ -1,6 +1,11 @@
 package com.krono.app.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,21 +27,29 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.krono.app.ui.theme.KronoBackground
+import com.krono.app.ui.theme.KronoOnPrimary
 import com.krono.app.ui.theme.KronoOnSurface
 import com.krono.app.ui.theme.KronoOnSurfaceVariant
+import com.krono.app.ui.theme.KronoOutline
+import com.krono.app.ui.theme.KronoPrimary
 import com.krono.app.ui.theme.KronoSurface
 import com.krono.app.ui.theme.KronoSurfaceContainer
 import com.krono.app.ui.theme.KronoTertiary
+import com.krono.app.ui.viewmodel.KronoViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
+    viewModel: KronoViewModel,
     onNavigateBack: () -> Unit
 ) {
     Scaffold(
@@ -44,7 +57,7 @@ fun SettingsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Pengaturan & Kesiapan",
+                        text = "Pengaturan",
                         color = KronoOnSurface,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
@@ -68,6 +81,56 @@ fun SettingsScreen(
                 .padding(16.dp)
         ) {
             Text(
+                text = "Tema Tampilan",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = KronoOnSurface
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            val currentTheme by viewModel.themeMode.collectAsState()
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(KronoSurfaceContainer, RoundedCornerShape(12.dp))
+                    .border(BorderStroke(1.dp, KronoOutline.copy(alpha = 0.35f)), RoundedCornerShape(12.dp))
+                    .padding(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                listOf(
+                    "SYSTEM" to "Sistem",
+                    "LIGHT" to "Terang",
+                    "DARK" to "Gelap"
+                ).forEach { (mode, label) ->
+                    val isSelected = currentTheme.equals(mode, ignoreCase = true) || (mode == "DARK" && currentTheme.equals("KRONO_DARK", ignoreCase = true))
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .background(
+                                color = if (isSelected) KronoPrimary else Color.Transparent,
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .clickable { viewModel.setThemeMode(mode) }
+                            .padding(vertical = 10.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = label,
+                            fontSize = 13.sp,
+                            maxLines = 1,
+                            softWrap = false,
+                            color = if (isSelected) KronoOnPrimary else KronoOnSurfaceVariant,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
                 text = "Kesiapan Layanan & Platform",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -80,11 +143,12 @@ fun SettingsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(color = KronoSurfaceContainer, shape = RoundedCornerShape(12.dp))
+                    .border(BorderStroke(1.dp, KronoOutline.copy(alpha = 0.35f)), RoundedCornerShape(12.dp))
                     .padding(16.dp)
             ) {
                 ReadinessItem(title = "Wallpaper Manager", desc = "Dukungan layar utama dan layar kunci")
                 Spacer(modifier = Modifier.height(12.dp))
-                ReadinessItem(title = "Audio Manager", desc = "Pengaturan volume stream musik")
+                ReadinessItem(title = "Audio Manager", desc = "Pengaturan volume stream musik & profil suara")
                 Spacer(modifier = Modifier.height(12.dp))
                 ReadinessItem(title = "Penyimpanan Lokal", desc = "Room 3 database privat & TRUNCATE journal")
                 Spacer(modifier = Modifier.height(12.dp))
@@ -106,6 +170,7 @@ fun SettingsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(color = KronoSurfaceContainer, shape = RoundedCornerShape(12.dp))
+                    .border(BorderStroke(1.dp, KronoOutline.copy(alpha = 0.35f)), RoundedCornerShape(12.dp))
                     .padding(16.dp)
             ) {
                 Text(

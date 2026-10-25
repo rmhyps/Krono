@@ -5,6 +5,9 @@ import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -57,6 +61,7 @@ import com.krono.app.ui.theme.KronoError
 import com.krono.app.ui.theme.KronoOnPrimary
 import com.krono.app.ui.theme.KronoOnSurface
 import com.krono.app.ui.theme.KronoOnSurfaceVariant
+import com.krono.app.ui.theme.KronoOutline
 import com.krono.app.ui.theme.KronoPrimary
 import com.krono.app.ui.theme.KronoSurface
 import com.krono.app.ui.theme.KronoSurfaceContainer
@@ -136,7 +141,8 @@ fun RulesScreen(
                 onClick = { onNavigateToEditor(null) },
                 icon = { Icon(Icons.Default.Add, contentDescription = null, tint = KronoOnPrimary) },
                 text = { Text("Buat Aturan", color = KronoOnPrimary, fontWeight = FontWeight.SemiBold) },
-                containerColor = KronoPrimary
+                containerColor = KronoPrimary,
+                shape = RoundedCornerShape(14.dp)
             )
         },
         containerColor = KronoBackground
@@ -198,35 +204,60 @@ fun RulesScreen(
             }
 
             if (rules.isEmpty()) {
-                androidx.compose.foundation.layout.Box(
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(24.dp),
-                    contentAlignment = androidx.compose.ui.Alignment.Center
+                        .padding(32.dp),
+                    contentAlignment = Alignment.Center
                 ) {
                     Column(
-                        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+                        Box(
+                            modifier = Modifier
+                                .size(56.dp)
+                                .background(
+                                    color = KronoSurfaceContainer,
+                                    shape = RoundedCornerShape(16.dp)
+                                )
+                                .border(
+                                    width = 1.dp,
+                                    color = KronoOutline.copy(alpha = 0.3f),
+                                    shape = RoundedCornerShape(16.dp)
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = null,
+                                tint = KronoPrimary,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "Belum Ada Aturan",
+                            text = "Belum Ada Otomasi",
                             color = KronoOnSurface,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.SemiBold
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "Tekan 'Buat Aturan' di bawah untuk mulai membuat otomasi pribadi Anda.",
+                            text = "Buat aturan pertama Anda untuk mengotomasi wallpaper, mode suara, atau volume perangkat.",
                             color = KronoOnSurfaceVariant,
-                            fontSize = 14.sp,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            fontSize = 13.sp,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            lineHeight = 18.sp
                         )
                     }
                 }
             } else {
                 Text(
-                    text = "${rules.size} aturan terdaftar",
+                    text = "${rules.size} OTOMASI AKTIF & TERSIMPAN",
                     color = KronoOnSurfaceVariant,
-                    fontSize = 14.sp,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.5.sp,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
 

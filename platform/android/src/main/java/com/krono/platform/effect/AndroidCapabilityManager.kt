@@ -42,6 +42,12 @@ class AndroidCapabilityManager(
                 }
                 CapabilityStatus.Ready
             }
+            ActionKind.SET_RINGER_MODE -> {
+                if (audioManager == null) {
+                    return CapabilityStatus.Blocked("AudioManager not available")
+                }
+                CapabilityStatus.Ready
+            }
         }
     }
 }

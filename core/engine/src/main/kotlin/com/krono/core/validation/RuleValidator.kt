@@ -91,6 +91,22 @@ object RuleValidator {
                     errors.add(ValidationError("trigger.areaIds", "UNEXPECTED_AREA_IDS", "Bluetooth trigger must not specify areaIds"))
                 }
             }
+            TriggerFamily.WIFI -> {
+                val validKinds = setOf(
+                    TriggerKind.WIFI_CONNECTED,
+                    TriggerKind.WIFI_DISCONNECTED,
+                    TriggerKind.WIFI_STATE_CHANGED
+                )
+                if (trigger.kind !in validKinds) {
+                    errors.add(ValidationError("trigger.kind", "INVALID_TRIGGER_KIND", "Invalid Wi-Fi trigger kind: ${trigger.kind}"))
+                }
+                if (trigger.wifiSsid.isNullOrBlank()) {
+                    errors.add(ValidationError("trigger.wifiSsid", "BLANK_WIFI_SSID", "Wi-Fi trigger must specify wifiSsid"))
+                }
+                if (trigger.areaIds.isNotEmpty()) {
+                    errors.add(ValidationError("trigger.areaIds", "UNEXPECTED_AREA_IDS", "Wi-Fi trigger must not specify areaIds"))
+                }
+            }
         }
     }
 
@@ -186,6 +202,14 @@ object RuleValidator {
                     errors.add(ValidationError("$fieldPrefix.areaId", "UNEXPECTED_AREA_ID", "Bluetooth condition must not specify areaId"))
                 }
             }
+            PredicateKind.WIFI_IS_CONNECTED, PredicateKind.WIFI_IS_DISCONNECTED -> {
+                if (family != TriggerFamily.WIFI) {
+                    errors.add(ValidationError(fieldPrefix, "FAMILY_MISMATCH", "Wi-Fi condition used with non-Wi-Fi trigger"))
+                }
+                if (condition.wifiSsid.isNullOrBlank()) {
+                    errors.add(ValidationError("$fieldPrefix.wifiSsid", "BLANK_WIFI_SSID", "Wi-Fi SSID must not be blank"))
+                }
+            }
             PredicateKind.ALWAYS, PredicateKind.NONE -> {
                 if (condition.areaId != null || condition.deviceId != null) {
                     errors.add(ValidationError(fieldPrefix, "UNEXPECTED_PREDICATE_TARGET", "ALWAYS/NONE must not specify target"))
@@ -217,6 +241,20 @@ object RuleValidator {
                 }
                 if (action.volumePercent != null) {
                     errors.add(ValidationError("action.${action.actionId}.volumePercent", "UNEXPECTED_VOLUME_PERCENT", "Wallpaper action must not specify volumePercent"))
+                }
+            }
+            ActionKind.SET_RINGER_MODE -> {
+                if (action.ringerMode == null) {
+                    errors.add(ValidationError("action.${action.actionId}.ringerMode", "NULL_RINGER_MODE", "Ringer mode action must specify ringerMode"))
+                }
+                if (action.assetId != null) {
+                    errors.add(ValidationError("action.${action.actionId}.assetId", "UNEXPECTED_ASSET_ID", "Ringer mode action must not specify assetId"))
+                }
+                if (action.wallpaperTarget != null) {
+                    errors.add(ValidationError("action.${action.actionId}.wallpaperTarget", "UNEXPECTED_WALLPAPER_TARGET", "Ringer mode action must not specify wallpaperTarget"))
+                }
+                if (action.volumePercent != null) {
+                    errors.add(ValidationError("action.${action.actionId}.volumePercent", "UNEXPECTED_VOLUME_PERCENT", "Ringer mode action must not specify volumePercent"))
                 }
             }
         }

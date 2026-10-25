@@ -13,9 +13,11 @@ import com.krono.core.model.RuleDefinition
 import com.krono.core.result.ActionExecutionResult
 import com.krono.data.entity.ExecutionHistoryEntity
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -25,6 +27,19 @@ class KronoViewModel(application: Application) : AndroidViewModel(application) {
     val store = hub.store
     val coordinator = hub.coordinator
     val assetRepository = hub.assetRepository
+    val preferences = com.krono.data.preferences.KronoPreferences(application)
+
+    val themeMode: StateFlow<String> = preferences.themeFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = "SYSTEM"
+    )
+
+    fun setThemeMode(mode: String) {
+        viewModelScope.launch {
+            preferences.setTheme(mode)
+        }
+    }
 
     private val _rules = MutableStateFlow<List<Pair<RuleDefinition, Boolean>>>(emptyList())
     val rules: StateFlow<List<Pair<RuleDefinition, Boolean>>> = _rules.asStateFlow()

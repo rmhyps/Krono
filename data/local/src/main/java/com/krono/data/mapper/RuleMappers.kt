@@ -39,7 +39,8 @@ object RuleMappers {
                     kind = ActionKind.valueOf(a.actionKind),
                     assetId = a.assetId,
                     wallpaperTarget = a.wallpaperTarget?.let { WallpaperTarget.valueOf(it) },
-                    volumePercent = a.volumePercent
+                    volumePercent = a.volumePercent,
+                    ringerMode = a.ringerMode?.let { com.krono.core.model.RingerModeTarget.valueOf(it) }
                 )
             } ?: emptyList()
 
@@ -48,6 +49,7 @@ object RuleMappers {
                 kind = PredicateKind.valueOf(b.predicateKind),
                 areaId = b.predicateSourceId,
                 deviceId = b.predicateSourceId,
+                wifiSsid = b.predicateSourceId,
                 latitude = sourceDef?.latitude,
                 longitude = sourceDef?.longitude,
                 radiusM = sourceDef?.radiusM
@@ -78,6 +80,11 @@ object RuleMappers {
                 family = triggerFamily,
                 kind = TriggerKind.valueOf(revisionEntity.triggerKind),
                 deviceId = sources.firstOrNull()?.sourceId
+            )
+            TriggerFamily.WIFI -> TriggerDefinition(
+                family = triggerFamily,
+                kind = TriggerKind.valueOf(revisionEntity.triggerKind),
+                wifiSsid = sources.firstOrNull()?.sourceId
             )
         }
 
@@ -140,7 +147,8 @@ object RuleMappers {
                         actionKind = a.kind.name,
                         assetId = a.assetId,
                         wallpaperTarget = a.wallpaperTarget?.name,
-                        volumePercent = a.volumePercent
+                        volumePercent = a.volumePercent,
+                        ringerMode = a.ringerMode?.name
                     )
                 )
             }
@@ -161,6 +169,16 @@ object RuleMappers {
                         ruleId = rule.ruleId,
                         revision = rule.revision,
                         sourceId = devId,
+                        sourceRevision = 1
+                    )
+                }
+            )
+            TriggerFamily.WIFI -> listOfNotNull(
+                rule.trigger.wifiSsid?.let { ssid ->
+                    RuleSourceEntity(
+                        ruleId = rule.ruleId,
+                        revision = rule.revision,
+                        sourceId = ssid,
                         sourceRevision = 1
                     )
                 }

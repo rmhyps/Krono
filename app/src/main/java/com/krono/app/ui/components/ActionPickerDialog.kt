@@ -1,14 +1,19 @@
 package com.krono.app.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -35,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.krono.app.ui.theme.KronoOnSurface
 import com.krono.app.ui.theme.KronoOnSurfaceVariant
+import com.krono.app.ui.theme.KronoOutline
 import com.krono.app.ui.theme.KronoPrimary
 import com.krono.app.ui.theme.KronoSurfaceContainer
 import com.krono.app.ui.theme.KronoSurfaceHigh
@@ -50,6 +56,7 @@ fun ActionPickerDialog(
         Card(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = KronoSurfaceContainer),
+            border = BorderStroke(1.dp, KronoOutline.copy(alpha = 0.35f)),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp)
@@ -75,10 +82,10 @@ fun ActionPickerDialog(
 
                 Text(
                     text = "AKSI TERSEDIA",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = KronoTertiary,
-                    fontFamily = FontFamily.Monospace
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = KronoOnSurfaceVariant,
+                    letterSpacing = 0.5.sp
                 )
                 Spacer(modifier = Modifier.height(6.dp))
 
@@ -106,14 +113,27 @@ fun ActionPickerDialog(
                     }
                 )
 
+                Spacer(modifier = Modifier.height(6.dp))
+
+                ActionOptionItem(
+                    icon = Icons.Default.Notifications,
+                    title = "Ubah Mode Suara HP",
+                    desc = "Mengatur profil suara ke Normal, Getar, atau Hening",
+                    enabled = true,
+                    onClick = {
+                        onActionSelected(ActionKind.SET_RINGER_MODE)
+                        onDismiss()
+                    }
+                )
+
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
                     text = "SEGERA HADIR (ROADMAP)",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = KronoOnSurfaceVariant,
-                    fontFamily = FontFamily.Monospace
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = KronoOnSurfaceVariant.copy(alpha = 0.7f),
+                    letterSpacing = 0.5.sp
                 )
                 Spacer(modifier = Modifier.height(6.dp))
 
@@ -147,7 +167,7 @@ fun ActionPickerDialog(
                     onClick = onDismiss,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Batal", color = KronoPrimary)
+                    Text("Batal", color = KronoPrimary, fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -167,18 +187,35 @@ private fun ActionOptionItem(
             .fillMaxWidth()
             .background(
                 color = if (enabled) KronoSurfaceHigh else KronoSurfaceHigh.copy(alpha = 0.4f),
-                shape = RoundedCornerShape(10.dp)
+                shape = RoundedCornerShape(12.dp)
+            )
+            .border(
+                border = BorderStroke(1.dp, if (enabled) KronoOutline.copy(alpha = 0.25f) else Color.Transparent),
+                shape = RoundedCornerShape(12.dp)
             )
             .clickable(enabled = enabled) { onClick() }
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = if (enabled) KronoTertiary else Color.Gray,
-            modifier = Modifier.padding(end = 12.dp)
-        )
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .background(
+                    color = if (enabled) KronoPrimary.copy(alpha = 0.12f) else Color.Transparent,
+                    shape = RoundedCornerShape(8.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (enabled) KronoPrimary else Color.Gray,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
         Column(modifier = Modifier.weight(1f)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -196,7 +233,7 @@ private fun ActionOptionItem(
                         text = "Segera",
                         color = Color.Gray,
                         fontSize = 10.sp,
-                        fontFamily = FontFamily.Monospace
+                        fontWeight = FontWeight.Medium
                     )
                 }
             }
@@ -204,7 +241,8 @@ private fun ActionOptionItem(
             Text(
                 text = desc,
                 color = if (enabled) KronoOnSurfaceVariant else Color.Gray.copy(alpha = 0.7f),
-                fontSize = 12.sp
+                fontSize = 12.sp,
+                lineHeight = 16.sp
             )
         }
     }

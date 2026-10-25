@@ -1,14 +1,18 @@
 package com.krono.app.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.krono.app.ui.theme.KronoOnSurface
 import com.krono.app.ui.theme.KronoOnSurfaceVariant
+import com.krono.app.ui.theme.KronoOutline
 import com.krono.app.ui.theme.KronoPrimary
 import com.krono.app.ui.theme.KronoSecondary
 import com.krono.app.ui.theme.KronoSurfaceContainer
@@ -52,6 +57,7 @@ fun TriggerPickerDialog(
         Card(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = KronoSurfaceContainer),
+            border = BorderStroke(1.dp, KronoOutline.copy(alpha = 0.35f)),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp)
@@ -77,10 +83,10 @@ fun TriggerPickerDialog(
 
                 Text(
                     text = "BLUETOOTH & AKSESORI",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = KronoSecondary,
-                    fontFamily = FontFamily.Monospace
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = KronoOnSurfaceVariant,
+                    letterSpacing = 0.5.sp
                 )
                 Spacer(modifier = Modifier.height(6.dp))
 
@@ -112,10 +118,10 @@ fun TriggerPickerDialog(
 
                 Text(
                     text = "LOKASI & GEOFENCE",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = KronoSecondary,
-                    fontFamily = FontFamily.Monospace
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = KronoOnSurfaceVariant,
+                    letterSpacing = 0.5.sp
                 )
                 Spacer(modifier = Modifier.height(6.dp))
 
@@ -133,22 +139,49 @@ fun TriggerPickerDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "SEGERA HADIR (ROADMAP)",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
+                    text = "WI-FI & JARINGAN",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
                     color = KronoOnSurfaceVariant,
-                    fontFamily = FontFamily.Monospace
+                    letterSpacing = 0.5.sp
                 )
                 Spacer(modifier = Modifier.height(6.dp))
 
                 TriggerOptionItem(
-                    icon = Icons.Default.Place,
-                    title = "Jaringan Wi-Fi Terhubung",
-                    desc = "Memicu saat tersambung ke nama Wi-Fi (SSID) tertentu",
-                    enabled = false,
-                    onClick = {}
+                    icon = Icons.Default.Share,
+                    title = "Terhubung ke Jaringan Wi-Fi",
+                    desc = "Memicu saat HP tersambung ke nama Wi-Fi (SSID) tertentu",
+                    enabled = true,
+                    onClick = {
+                        onTriggerSelected(TriggerFamily.WIFI, TriggerKind.WIFI_CONNECTED, "Terhubung ke Wi-Fi")
+                        onDismiss()
+                    }
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                TriggerOptionItem(
+                    icon = Icons.Default.Share,
+                    title = "Terputus dari Jaringan Wi-Fi",
+                    desc = "Memicu saat HP terputus dari jaringan Wi-Fi tertentu",
+                    enabled = true,
+                    onClick = {
+                        onTriggerSelected(TriggerFamily.WIFI, TriggerKind.WIFI_DISCONNECTED, "Terputus dari Wi-Fi")
+                        onDismiss()
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "SEGERA HADIR (ROADMAP)",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = KronoOnSurfaceVariant.copy(alpha = 0.7f),
+                    letterSpacing = 0.5.sp
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+
                 TriggerOptionItem(
                     icon = Icons.Default.PlayArrow,
                     title = "Jadwal Jam Tertentu",
@@ -156,7 +189,7 @@ fun TriggerPickerDialog(
                     enabled = false,
                     onClick = {}
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 TriggerOptionItem(
                     icon = Icons.Default.Notifications,
                     title = "Level Baterai / Pengisian",
@@ -171,7 +204,7 @@ fun TriggerPickerDialog(
                     onClick = onDismiss,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Batal", color = KronoPrimary)
+                    Text("Batal", color = KronoPrimary, fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -191,18 +224,35 @@ private fun TriggerOptionItem(
             .fillMaxWidth()
             .background(
                 color = if (enabled) KronoSurfaceHigh else KronoSurfaceHigh.copy(alpha = 0.4f),
-                shape = RoundedCornerShape(10.dp)
+                shape = RoundedCornerShape(12.dp)
+            )
+            .border(
+                border = BorderStroke(1.dp, if (enabled) KronoOutline.copy(alpha = 0.25f) else Color.Transparent),
+                shape = RoundedCornerShape(12.dp)
             )
             .clickable(enabled = enabled) { onClick() }
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = if (enabled) KronoSecondary else Color.Gray,
-            modifier = Modifier.padding(end = 12.dp)
-        )
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .background(
+                    color = if (enabled) KronoPrimary.copy(alpha = 0.12f) else Color.Transparent,
+                    shape = RoundedCornerShape(8.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (enabled) KronoPrimary else Color.Gray,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
         Column(modifier = Modifier.weight(1f)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -220,7 +270,7 @@ private fun TriggerOptionItem(
                         text = "Segera",
                         color = Color.Gray,
                         fontSize = 10.sp,
-                        fontFamily = FontFamily.Monospace
+                        fontWeight = FontWeight.Medium
                     )
                 }
             }
@@ -228,7 +278,8 @@ private fun TriggerOptionItem(
             Text(
                 text = desc,
                 color = if (enabled) KronoOnSurfaceVariant else Color.Gray.copy(alpha = 0.7f),
-                fontSize = 12.sp
+                fontSize = 12.sp,
+                lineHeight = 16.sp
             )
         }
     }

@@ -55,7 +55,8 @@ class KronoRuntimeHub private constructor(private val appContext: Context) {
 
     val audioManager = AudioEffectManager(appContext)
     val wallpaperManager = WallpaperEffectManager(appContext)
-    val effectAdapter = AndroidEffectAdapter(audioManager, wallpaperManager)
+    val ringerModeManager = com.krono.platform.effect.RingerModeEffectManager(appContext)
+    val effectAdapter = AndroidEffectAdapter(audioManager, wallpaperManager, ringerModeManager)
     val capabilityManager = AndroidCapabilityManager(appContext)
     val geofenceManager = GeofenceManager(appContext)
     val locationMonitor = KronoLocationMonitor(appContext)
@@ -101,6 +102,10 @@ class KronoRuntimeHub private constructor(private val appContext: Context) {
 
         BluetoothEventHandler.listener = { deviceAddress, isConnected, elapsedMs, utcMs ->
             handleBluetoothTransition(deviceAddress, isConnected, elapsedMs, utcMs)
+        }
+
+        com.krono.platform.wifi.WifiEventHandler.listener = { ssid, isConnected, elapsedMs, utcMs ->
+            handleWifiTransition(ssid, isConnected, elapsedMs, utcMs)
         }
     }
 
@@ -189,6 +194,59 @@ class KronoRuntimeHub private constructor(private val appContext: Context) {
 
             val reports = coordinator.onLogicalEvent(event, snapshot)
             recordReportsToHistory(reports, utcMs, if (isConnected) "Terhubung $deviceAddress" else "Terputus $deviceAddress", deviceAddress)
+        }
+    }
+
+    fun handleWifiTransition(ssid: String, isConnected: Boolean, elapsedMs: Long, utcMs: Long) {
+        val traceId = UUID.randomUUID().toString().take(6)
+        android.util.Log.d("KRONO_DIAG", "[HUB] handleWifiTransition() traceId=$traceId ssid=$ssid isConnected=$isConnected elapsedMs=$elapsedMs")
+        scope.launch {
+            val activeRules = store.getActiveRules().filter { it.trigger.family == TriggerFamily.WIFI }
+            android.util.Log.d("KRONO_DIAG", "[HUB] traceId=$traceId found ${activeRules.size} active Wi-Fi rules")
+            if (activeRules.isEmpty()) {
+                android.util.Log.w("KRONO_DIAG", "[HUB] traceId=$traceId ABORTED: No active Wi-Fi rules found in store")
+                return@launch
+            }
+
+            val allWifiStates = mutableMapOf<String, com.krono.core.evaluator.WifiConnectionState>()
+            for (r in activeRules) {
+                val targetSsid = r.trigger.wifiSsid ?: continue
+                if (targetSsid.equals(ssid, ignoreCase = true)) {
+                    allWifiStates[targetSsid] = if (isConnected) {
+                        com.krono.core.evaluator.WifiConnectionState.CONNECTED
+                    } else {
+                        com.krono.core.evaluator.WifiConnectionState.DISCONNECTED
+                    }
+                } else if (targetSsid !in allWifiStates) {
+                    allWifiStates[targetSsid] = com.krono.core.evaluator.WifiConnectionState.DISCONNECTED
+                }
+            }
+
+            val snapshot = EvaluationSnapshot(
+                wifiStates = allWifiStates,
+                nowElapsedMs = elapsedMs,
+                nowUtcMs = utcMs
+            )
+
+            val event = LogicalEvent(
+                eventId = "ev-wifi-" + UUID.randomUUID().toString().take(8),
+                eventKey = "ek-wifi-$ssid:$isConnected:$elapsedMs",
+                eventKind = if (isConnected) "WIFI_CONNECTED" else "WIFI_DISCONNECTED",
+                causeKey = "cause-wifi-$ssid:$isConnected",
+                receivedElapsedMs = elapsedMs,
+                receivedAtUtcMs = utcMs,
+                sourceFamily = "WIFI",
+                sourceId = ssid
+            )
+            android.util.Log.d("KRONO_DIAG", "[HUB] traceId=$traceId Dispatched Wi-Fi event to coordinator: ${event.eventId}")
+
+            val reports = coordinator.onLogicalEvent(event, snapshot)
+            recordReportsToHistory(
+                reports = reports,
+                utcMs = utcMs,
+                branchLabel = if (isConnected) "Terhubung Wi-Fi: $ssid" else "Terputus Wi-Fi: $ssid",
+                sourceId = ssid
+            )
         }
     }
 

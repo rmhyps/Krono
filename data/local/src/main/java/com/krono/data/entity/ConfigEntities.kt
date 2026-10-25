@@ -119,7 +119,9 @@ data class ActionEntity(
     @ColumnInfo(name = "wallpaper_target")
     val wallpaperTarget: String? = null,
     @ColumnInfo(name = "volume_percent")
-    val volumePercent: Int? = null
+    val volumePercent: Int? = null,
+    @ColumnInfo(name = "ringer_mode")
+    val ringerMode: String? = null
 )
 
 @Entity(

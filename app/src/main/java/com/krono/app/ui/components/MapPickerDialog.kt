@@ -1,6 +1,7 @@
 package com.krono.app.ui.components
 
 import android.content.Context
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,6 +43,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.krono.app.ui.theme.KronoOnPrimary
 import com.krono.app.ui.theme.KronoOnSurface
 import com.krono.app.ui.theme.KronoOnSurfaceVariant
+import com.krono.app.ui.theme.KronoOutline
 import com.krono.app.ui.theme.KronoPrimary
 import com.krono.app.ui.theme.KronoSurfaceContainer
 import com.krono.app.ui.theme.KronoSurfaceHigh
@@ -153,6 +155,7 @@ fun MapPickerDialog(
         Card(
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = KronoSurfaceContainer),
+            border = BorderStroke(1.dp, KronoOutline.copy(alpha = 0.35f)),
             modifier = Modifier
                 .fillMaxWidth(0.95f)
                 .fillMaxHeight(0.88f)

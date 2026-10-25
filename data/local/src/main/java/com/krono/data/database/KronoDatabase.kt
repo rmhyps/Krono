@@ -72,8 +72,8 @@ import com.krono.data.entity.TargetHeadEntity
         ExecutionHistoryEntity::class,
         ActionHistoryEntity::class
     ],
-    version = 1,
-    exportSchema = true
+    version = 2,
+    exportSchema = false
 )
 abstract class KronoDatabase : RoomDatabase() {
 
@@ -81,6 +81,12 @@ abstract class KronoDatabase : RoomDatabase() {
 
     companion object {
         const val DATABASE_NAME = "krono.db"
+
+        private val MIGRATION_1_2 = object : androidx.room.migration.Migration(1, 2) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE actions ADD COLUMN ringer_mode TEXT DEFAULT NULL")
+            }
+        }
 
         @Volatile
         private var instance: KronoDatabase? = null
@@ -96,6 +102,8 @@ abstract class KronoDatabase : RoomDatabase() {
                 Room.inMemoryDatabaseBuilder(context, KronoDatabase::class.java)
             } else {
                 Room.databaseBuilder(context, KronoDatabase::class.java, DATABASE_NAME)
+                    .addMigrations(MIGRATION_1_2)
+                    .fallbackToDestructiveMigration()
             }
             return builder
                 .setJournalMode(JournalMode.TRUNCATE)
