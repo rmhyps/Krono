@@ -20,6 +20,8 @@ import com.krono.app.hub.KronoRuntimeHub
 
 class KronoAutomationService : Service() {
 
+    private var wakeLock: android.os.PowerManager.WakeLock? = null
+
     companion object {
         const val CHANNEL_ID = "krono_automation_channel"
         const val NOTIFICATION_ID = 1010
@@ -88,6 +90,17 @@ class KronoAutomationService : Service() {
 
         val hub = KronoRuntimeHub.getInstance(this)
         hub.setupEventHandlers()
+
+        try {
+            val pm = getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager
+            wakeLock = pm?.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "krono:automation_service")?.apply {
+                setReferenceCounted(false)
+                acquire()
+            }
+            Log.d("KRONO_DIAG", "[FGS] Service WakeLock acquired")
+        } catch (e: Exception) {
+            Log.w("KRONO_DIAG", "[FGS] Failed to acquire Service WakeLock: ${e.message}")
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -105,6 +118,12 @@ class KronoAutomationService : Service() {
 
     override fun onDestroy() {
         Log.d("KRONO_DIAG", "[FGS] onDestroy() invoked, calling locationMonitor.stopMonitoring()")
+        try {
+            if (wakeLock?.isHeld == true) {
+                wakeLock?.release()
+                Log.d("KRONO_DIAG", "[FGS] Service WakeLock released")
+            }
+        } catch (_: Exception) {}
         val hub = KronoRuntimeHub.getInstance(this)
         hub.locationMonitor.stopMonitoring()
         super.onDestroy()

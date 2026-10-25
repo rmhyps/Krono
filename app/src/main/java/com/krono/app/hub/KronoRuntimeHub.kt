@@ -92,66 +92,78 @@ class KronoRuntimeHub private constructor(private val appContext: Context) {
 
     fun setupEventHandlers() {
         val onLoc = { areaId: String, isInside: Boolean, elapsedMs: Long, utcMs: Long ->
-            handleLocationTransition(areaId, isInside, elapsedMs, utcMs)
+            handleLocationTransition(areaId, isInside, elapsedMs, utcMs, null)
         }
         locationMonitor.onTransitionListener = onLoc
-        GeofenceEventHandler.listener = onLoc
+        GeofenceEventHandler.asyncListener = { areaId, isInside, elapsedMs, utcMs, onComplete ->
+            handleLocationTransition(areaId, isInside, elapsedMs, utcMs, onComplete)
+        }
 
         BluetoothEventHandler.listener = { deviceAddress, isConnected, elapsedMs, utcMs ->
             handleBluetoothTransition(deviceAddress, isConnected, elapsedMs, utcMs)
         }
     }
 
-    fun handleLocationTransition(areaId: String, isInside: Boolean, elapsedMs: Long, utcMs: Long) {
+    fun handleLocationTransition(
+        areaId: String,
+        isInside: Boolean,
+        elapsedMs: Long,
+        utcMs: Long,
+        onComplete: (() -> Unit)? = null
+    ) {
         val traceId = UUID.randomUUID().toString().take(6)
         android.util.Log.d("KRONO_DIAG", "[HUB] handleLocationTransition() traceId=$traceId psid=$processSessionId areaId=$areaId isInside=$isInside elapsedMs=$elapsedMs")
         scope.launch {
-            val activeRules = store.getActiveRules().filter { it.trigger.family == TriggerFamily.LOCATION }
-            android.util.Log.d("KRONO_DIAG", "[HUB] traceId=$traceId found ${activeRules.size} active rules: ${activeRules.map { "${it.ruleId}:rev${it.revision}" }}")
-            if (activeRules.isEmpty()) {
-                android.util.Log.w("KRONO_DIAG", "[HUB] traceId=$traceId ABORTED: No active location rules found in store")
-                return@launch
-            }
+            try {
+                val activeRules = store.getActiveRules().filter { it.trigger.family == TriggerFamily.LOCATION }
+                android.util.Log.d("KRONO_DIAG", "[HUB] traceId=$traceId found ${activeRules.size} active rules: ${activeRules.map { "${it.ruleId}:rev${it.revision}" }}")
+                if (activeRules.isEmpty()) {
+                    android.util.Log.w("KRONO_DIAG", "[HUB] traceId=$traceId ABORTED: No active location rules found in store")
+                    return@launch
+                }
 
-            val allAreaStates = mutableMapOf<String, ConditionResult>()
-            for (r in activeRules) {
-                for (b in r.branches) {
-                    val bArea = b.condition.areaId ?: "area-${b.branchId}"
-                    if (bArea == areaId) {
-                        allAreaStates[bArea] = if (isInside) ConditionResult.True else ConditionResult.False
-                    } else if (bArea !in allAreaStates) {
-                        allAreaStates[bArea] = ConditionResult.False
+                val allAreaStates = mutableMapOf<String, ConditionResult>()
+                for (r in activeRules) {
+                    for (b in r.branches) {
+                        val bArea = b.condition.areaId ?: "area-${b.branchId}"
+                        if (bArea == areaId) {
+                            allAreaStates[bArea] = if (isInside) ConditionResult.True else ConditionResult.False
+                        } else if (bArea !in allAreaStates) {
+                            allAreaStates[bArea] = ConditionResult.False
+                        }
                     }
                 }
-            }
 
-            val snapshot = EvaluationSnapshot(
-                areaStates = allAreaStates,
-                nowElapsedMs = elapsedMs,
-                nowUtcMs = utcMs
-            )
+                val snapshot = EvaluationSnapshot(
+                    areaStates = allAreaStates,
+                    nowElapsedMs = elapsedMs,
+                    nowUtcMs = utcMs
+                )
 
-            val event = LogicalEvent(
-                eventId = "ev-loc-" + UUID.randomUUID().toString().take(8),
-                eventKey = "ek-loc-$areaId:$isInside:$elapsedMs",
-                eventKind = "GEOFENCE_MEMBERSHIP_CHANGED",
-                causeKey = "cause-loc-$areaId:$isInside",
-                receivedElapsedMs = elapsedMs,
-                receivedAtUtcMs = utcMs,
-                sourceFamily = "LOCATION",
-                sourceId = areaId
-            )
-            android.util.Log.d("KRONO_DIAG", "[HUB] traceId=$traceId Dispatched onLogicalEvent to coordinator: event=${event.eventId} causeKey=${event.causeKey} areaStates=$allAreaStates")
+                val event = LogicalEvent(
+                    eventId = "ev-loc-" + UUID.randomUUID().toString().take(8),
+                    eventKey = "ek-loc-$areaId:$isInside:$elapsedMs",
+                    eventKind = "GEOFENCE_MEMBERSHIP_CHANGED",
+                    causeKey = "cause-loc-$areaId:$isInside",
+                    receivedElapsedMs = elapsedMs,
+                    receivedAtUtcMs = utcMs,
+                    sourceFamily = "LOCATION",
+                    sourceId = areaId
+                )
+                android.util.Log.d("KRONO_DIAG", "[HUB] traceId=$traceId Dispatched onLogicalEvent to coordinator: event=${event.eventId} causeKey=${event.causeKey} areaStates=$allAreaStates")
 
-            val reports = coordinator.onLogicalEvent(event, snapshot)
-            android.util.Log.d("KRONO_DIAG", "[HUB] traceId=$traceId coordinator returned ${reports.size} reports")
-            for (rep in reports) {
-                android.util.Log.d("KRONO_DIAG", "[HUB] traceId=$traceId report ruleId=${rep.ruleId} summary=${rep.summary}")
-                for (act in rep.actionResults) {
-                    android.util.Log.d("KRONO_DIAG", "[HUB] traceId=$traceId action actionId=${act.actionId} status=${act.status} reason=${act.reason ?: ""}")
+                val reports = coordinator.onLogicalEvent(event, snapshot)
+                android.util.Log.d("KRONO_DIAG", "[HUB] traceId=$traceId coordinator returned ${reports.size} reports")
+                for (rep in reports) {
+                    android.util.Log.d("KRONO_DIAG", "[HUB] traceId=$traceId report ruleId=${rep.ruleId} summary=${rep.summary}")
+                    for (act in rep.actionResults) {
+                        android.util.Log.d("KRONO_DIAG", "[HUB] traceId=$traceId action actionId=${act.actionId} status=${act.status} reason=${act.reason ?: ""}")
+                    }
                 }
+                recordReportsToHistory(reports, utcMs, if (isInside) "Masuk $areaId" else "Keluar $areaId", areaId)
+            } finally {
+                onComplete?.invoke()
             }
-            recordReportsToHistory(reports, utcMs, if (isInside) "Masuk $areaId" else "Keluar $areaId", areaId)
         }
     }
 
